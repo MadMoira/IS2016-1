@@ -2,20 +2,20 @@
 # coding: utf-8
 
 # # Intelligent Systems Assignment 1
-#
+# 
 # ## Masterball solver
-#
+# 
 # **Name:**
-#
+# 
 # **ID:**
-#
+# 
 
 # ### 1. Create a class to model the Masterball problem
 
 # A Masterball must be represented as an array of arrays with integer values representing the color of the tile in each position:
-#
+# 
 # A solved masterball must look like this:
-#
+# 
 # ```python
 # [ [0, 1, 2, 3, 4, 5, 6, 7],
 #   [0, 1, 2, 3, 4, 5, 6, 7],
@@ -26,8 +26,14 @@
 
 # #### Variables modeling the actions
 
-# In[1]:
+# In[ ]:
 
+from collections import deque
+from search_base import search_tree
+from util import Stack
+import copy
+import search
+import sys
 import time
 
 '''
@@ -50,7 +56,7 @@ V_7 = "Vertical 7"
 
 
 # `R_i` moves the `i`th row to the right. For instance, `R_2` applied to the solved state will produce:
-#
+# 
 # ```python
 # [ [0, 1, 2, 3, 4, 5, 6, 7],
 #   [0, 1, 2, 3, 4, 5, 6, 7],
@@ -58,11 +64,11 @@ V_7 = "Vertical 7"
 #   [0, 1, 2, 3, 4, 5, 6, 7]
 # ]
 # ```
-#
+# 
 # `V_i` performs a clockwise vertical move starting with the `i`th column
-#
+# 
 # `V_1` applied to the above state will produce:
-#
+# 
 # ```python
 # [ [0, 4, 3, 2, 1, 5, 6, 7],
 #   [0, 3, 2, 1, 0, 5, 6, 7],
@@ -73,12 +79,7 @@ V_7 = "Vertical 7"
 
 # #### The Masterball problem class
 
-# In[90]:
-
-from collections import deque
-import search
-import copy
-
+# In[ ]:
 
 class MasterballProblem(search.SearchProblem):
 
@@ -172,7 +173,62 @@ class MasterballProblem(search.SearchProblem):
         return successors
 
 
-# In[92]:
+# ### 2. Implement iterative deepening search
+# 
+# Follow the example code provided in class and implement iterative deepening search (IDS).
+
+# In[ ]:
+
+def getStringState(state):
+
+    stringed = ''
+
+    for row in state:
+        for element in row:
+            stringed += str(element)
+
+    return stringed
+
+def DepthLimitedSearch(problem, depth):
+    visited = {}
+    tree = search_tree()
+    state = problem.getStartState()
+    visited[getStringState(state)] = 'gray'
+    frontier = Stack()
+    frontier.push((state, [], 0))
+    while not frontier.isEmpty():
+        u, actions, current_depth = frontier.pop()
+        for v, action, cost in problem.getSuccessors(u):
+            mini_action = action[1]
+            stringed_state = getStringState(v)
+            if current_depth > depth:
+                break
+            if not getStringState(v) in visited:
+                tree.addEdge(getStringState(u), action[1], getStringState(v))
+                if problem.isGoalState(v):
+                    return actions + [action[1]], tree
+                visited[getStringState(v)] = 'gray'
+                frontier.push((v, actions + [action[1]], current_depth+1))
+        visited[getStringState(u)] = 'green'
+    return [], tree
+
+
+def iterativeDeepeningSearch(problem):
+
+    for i in xrange(sys.maxint):
+        start_time = time.time()
+        actions, tree = DepthLimitedSearch(problem, i)
+        print("Para profundidad " + str(i) + " el tiempo fue: " + str(time.time() - start_time))
+        if len(actions) > 0:
+            return actions, tree, i
+        
+    return []
+
+def aStarSearch(problem, heuristic):
+    return []
+
+
+# In[ ]:
 
 test_state_0 = [[0, 1, 4, 5, 6, 2, 3, 7],
                 [0, 1, 4, 5, 6, 2, 3, 7],
@@ -199,114 +255,47 @@ test_state_4 = [[4, 1, 2, 0, 3, 5, 6, 7],
                 [4, 1, 2, 0, 3, 5, 6, 7],
                 [4, 1, 2, 0, 3, 5, 6, 7]]
 
-print(test_state_1)
 problem = MasterballProblem(test_state_1)
 
-# for successor in successors:
-#     print(successor[0])
-#     print(successor[1])
-#     print(successor[2])
-#     print("\n")
-
-
-# ### 2. Implement iterative deepening search
-#
-# Follow the example code provided in class and implement iterative deepening search (IDS).
-
-# In[2]:
-
-
-from search_base import search_tree
-from util import Stack
-
-
-def getStringState(state):
-
-    stringed = ''
-
-    for row in state:
-        for element in row:
-            stringed += str(element)
-
-    return stringed
-
-
-def DepthLimitedSearch(problem, depth):
-    visited = {}
-    tree = search_tree()
-    state = problem.getStartState()
-    visited[getStringState(state)] = 'gray'
-    frontier = Stack()
-    frontier.push((state, [], 0))
-    while not frontier.isEmpty():
-        u, actions, current_depth = frontier.pop()
-        for v, action, cost in problem.getSuccessors(u):
-            mini_action = action[1]
-            stringed_state = getStringState(v)
-            if current_depth > depth:
-                break
-            if not getStringState(v) in visited:
-                tree.addEdge(getStringState(u), action[1], getStringState(v))
-                if problem.isGoalState(v):
-                    return actions + [action[1]], tree
-                visited[getStringState(v)] = 'gray'
-                frontier.push((v, actions + [action[1]], current_depth+1))
-        visited[getStringState(u)] = 'green'
-    return [], tree
-
-
-import sys
-
-
-def IterativeDeepeningSearch(problem):
-
-    for i in xrange(sys.maxint):
-        start_time = time.time()
-        actions, tree = DepthLimitedSearch(problem, i)
-        print("Para profundidad " + str(i) + " el tiempo fue: " + str(time.time() - start_time))
-        if len(actions) > 0:
-            return actions, tree, i
-
-
-actions, tree, depth = IterativeDeepeningSearch(problem)
+actions, tree, depth = iterativeDeepeningSearch(problem)
 
 print("actions")
 print(actions)
 print(depth)
 
-# def aStarSearch(problem, heuristic):
-#     return []
-#
-#
-# # Evaluate it to see what is the maximum depth that it could explore in a reasonable time. Report the results.
-#
-# # ### 3. Implement different heuristics for the problem
-#
-# # Implement at least two admissible and consistent heuristics. Compare A* using the heuristics against IDS calculating the number of expanded nodes and the effective branching factor, in the same way as it is done in figure 3.29 of [Russell10].
-#
-# # In[5]:
-#
+
+# Evaluate it to see what is the maximum depth that it could explore in a reasonable time. Report the results. 
+
+# ### 3. Implement different heuristics for the problem
+
+# Implement at least two admissible and consistent heuristics. Compare A* using the heuristics against IDS calculating the number of expanded nodes and the effective branching factor, in the same way as it is done in figure 3.29 of [Russell10].
+
+# In[ ]:
+
 # def myHeuristic(state):
 #     return 0
-#
-#
-# # In[6]:
-#
+
+
+# In[ ]:
+
 # def solveMasterBall(problem, search_function):
 #     '''
-#     This function receives a Masterball problem instance and a
+#     This function receives a Masterball problem instance and a 
 #     search_function (IDS or A*S) and must return a list of actions that solve the problem.
 #     '''
 #     return []
-#
-#
+
+
 # problem = MasterballProblem([ [0, 4, 3, 2, 1, 5, 6, 7],
 #                               [0, 3, 2, 1, 0, 5, 6, 7],
 #                               [7, 4, 3, 2, 1, 4, 5, 6],
 #                               [0, 4, 3, 2, 1, 5, 6, 7]])
-#
+
 # print solveMasterBall(problem, iterativeDeepeningSearch(problem))
 # print solveMasterBall(problem, aStarSearch(problem, myHeuristic))
-#
-#
-# # In[ ]:
+
+
+# In[ ]:
+
+
+
