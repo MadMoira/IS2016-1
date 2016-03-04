@@ -562,8 +562,8 @@ class CornersAndCapsulesProblem(search.SearchProblem):
         # print("Capsules")
         # print(self.capsules)
         self.food = startingGameState.getFood()
-        # print("Food")
-        # print(self.food)
+        print("Food")
+        print(self.food)
         self.walls = startingGameState.getWalls()
         self.startingPosition = startingGameState.getPacmanPosition()
         top, right = self.walls.height-2, self.walls.width-2
@@ -577,18 +577,20 @@ class CornersAndCapsulesProblem(search.SearchProblem):
         Returns the start state (in your state space, not the full Pacman state
         space)
         """
-        return self.startingPosition, self.capsules, self.food
+
+        return self.startingPosition, self.capsulesToString(self.capsules), self.food
 
     def isGoalState(self, state):
         """
         Returns whether this search state is a goal state of the problem.
         """
         position, capsules, food = state
+        capsules = self.stringToCapsules(capsules)
 
         total_food = 0
         for row in food:
             for element in row:
-                if element == 'T':
+                if element:
                     total_food += 1
 
         total_capsules = len(capsules)
@@ -617,6 +619,7 @@ class CornersAndCapsulesProblem(search.SearchProblem):
 
             "*** YOUR CODE HERE ***"
             position, capsules, food = state
+            capsules = self.stringToCapsules(capsules)
             x, y = position
             dx, dy = Actions.directionToVector(action)
             nextx, nexty = int(x+dx), int(y+dy)
@@ -625,6 +628,7 @@ class CornersAndCapsulesProblem(search.SearchProblem):
             hitsCapsule = (nextx, nexty) in capsules
 
             if not hitsWall:
+                print 'len de capsules: ', len(capsules)
                 if len(capsules) > 0:
                     if not hitsFood:
                         nextposition = (nextx, nexty)
@@ -632,19 +636,33 @@ class CornersAndCapsulesProblem(search.SearchProblem):
                         if hitsCapsule:
                             index = new_capsules.index(nextposition)
                             new_capsules.pop(index)
-                        nextstate = (nextposition, new_capsules, food)
+                        nextstate = (nextposition, self.capsulesToString(new_capsules), food)
                         successors.append((nextstate, action, 1))
                 else:
                     nextposition = (nextx, nexty)
                     new_food = copy.deepcopy(food)
                     if hitsFood:
-                        new_food[nextx][nexty] = 'F'
-                    nextstate = (nextposition, capsules, new_food)
+                        new_food[nextx][nexty] = False
+                    nextstate = (nextposition, self.capsulesToString(capsules), new_food)
                     successors.append((nextstate, action, 1))
 
         # DO NOT CHANGE
         self._expanded += 1
         return successors
+
+    def capsulesToString(self, capsules):
+        capString=''
+        for capsule in capsules:
+            capString += str(capsule[0])+','+str(capsule[1])+'-'
+        return capString
+
+    def stringToCapsules(self, s):
+        a = []
+        cTuple=s.split('-')
+        for index in xrange(0,len(cTuple)-1):
+            b=cTuple[index].split(',')
+            a.append((int(b[0]),int(b[1])))
+        return a
 
     def getCostOfActions(self, actions):
         """
@@ -673,35 +691,6 @@ def cornersAndCapsulesHeuristic(state, problem):
     shortest path from the state to a goal of the problem; i.e.  it should be
     admissible (as well as consistent).
     """
-    corners = problem.corners # These are the corner coordinates
-    walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
-    #position, corners = state
-    #count = 0
-    #for i in range(len(corners)):
-    #    if corners[i] == False:
-    #        count = count + 1
-    #return count
-    #h = 0
-    #print state
-    #print corners
-    #print problem.corners
-    h = []
-    for i in range(len(corners)):
-        if not state[1][i]:
-            #print state[0][0]
-            #print corners[i]
-            h.append((abs(state[0][0] - corners[i][0])+abs(state[0][1] - corners[i][1])))
-
-    min_side =  min((corners[1][1]-1),(corners[2][0] - 1))
-    other_corners = 0
-    other_corners = 3 * min_side
-    for b in state[1]:
-        if b == True and other_corners !=0:
-            other_corners -= min_side
-    if len(h)>0:
-        return min(h) + other_corners
-    else:
-        return 0 + other_corners
 
     # Default to trivial solution'''
     return 0
@@ -713,5 +702,5 @@ python pacman.py -l tinyMaze -p AStarCornersAndCapsulesAgent
 """
 class AStarCornersAndCapsulesAgent(SearchAgent):
     def __init__(self):
-        self.searchFunction = lambda prob: search.astar(prob,cornersAndCapsulesHeuristic)
+        self.searchFunction = lambda prob: search.astar(prob, cornersAndCapsulesHeuristic)
         self.searchType = CornersAndCapsulesProblem

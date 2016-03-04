@@ -108,46 +108,40 @@ def nullHeuristic(state, problem=None):
 
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
-    node = [problem.getStartState(),'',1,[]]
+    "*** YOUR CODE HERE ***"
     frontier = util.PriorityQueue()
-    frontier.push(node,0)
-    explored = set()
-    found = False
-    #print node[0]
-    while not found:
-        if frontier.isEmpty():
-            return []
-        node = frontier.pop()
+    frontier.push(problem.getStartState(), heuristic(problem.getStartState(), problem))
+    explored = []
+    paths = {}
+    totalCost = {}
+    paths[problem.getStartState()]=list()
+    totalCost[problem.getStartState()]=0
 
-        if problem.isGoalState(node[0]):
-            found = True
-            solution = node[3]
-            break
-        children = problem.getSuccessors(node[0])
-        print node
-        print node[0][0]
-        explored.add(node[0])
-        for child in children:
-            if child[0] not in explored:#(explored or frontier[:][0]):
-                current_path = list(node[3])
-                current_path.append(child[1])
-                child = list(child)
-                child.append(current_path)
-                #explored.add(child[0])
-                g = problem.getCostOfActions(current_path)
-                h = heuristic(child[0],problem)
-                #if h>g:
-                #    print'********************'
-                #    print 'child:'+str(child)
-                #    print 'cost:'+str(g)
-                #    print 'H: '+str(h)
-                #else:
-                #    print 'child:'+str(child)
-                #    print 'cost:'+str(g)
-                #    print 'h:'+str(h)
-                frontier.push(child, problem.getCostOfActions(current_path)+heuristic(child[0],problem))
+    def isBestCostforState(cost,state):
+        for n in frontier.heap:
+            if n[2] == state:
+                if (n[2] in totalCost.keys()) and (totalCost[n[2]]> cost):
+                    frontier.heap.remove(n)
+                    return True
+                else:
+                    return False
+        return True
 
-    return solution
+    while not frontier.isEmpty():
+        s = frontier.pop()
+        if problem.isGoalState(s):
+            return paths[s]
+        explored.append(s)
+        successors = problem.getSuccessors(s)
+        for successor in successors:
+            successorState=successor[0]
+            move=successor[1]
+            cost=successor[2]
+            if (successorState not in explored and isBestCostforState(totalCost[s]+cost,successorState)):
+                paths[successorState] = list(paths[s]) + [move]
+                totalCost[successorState] = totalCost[s] + cost 
+                frontier.push(successorState, heuristic(successorState, problem) + totalCost[successorState])
+    return []
 
 
 # Abbreviations
