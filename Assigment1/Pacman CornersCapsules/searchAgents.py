@@ -688,17 +688,34 @@ def cornersAndCapsulesHeuristic(state, problem):
     """
 
     position, capsules, foodGrid = state
-    capsules = problem.stringToCapsules(capsules)
+    capsules = list(problem.stringToCapsules(capsules))
+    foodGrid=foodGrid.asList()
 
-    maxDistance=0
-    maxDistance2=0
+    pathCost=0
     
-    for capsule in capsules:
-        maxDistance=max(maxDistance, util.manhattanDistance(position, capsule))
+    while (capsules):
+        minCap = 0
+        minDistance=9999
+        for index, capsule, in enumerate(capsules):
+            md=util.manhattanDistance(position, capsule)
+            if md<minDistance:
+                minDistance=md
+                minCap=index
+                pathCost+=md
+        position=capsules.pop(minCap)
 
-    for i in foodGrid.asList():
-        maxDistance2=max(maxDistance2,util.manhattanDistance(position,i))
-    return maxDistance+maxDistance2
+    while (foodGrid):
+        minCap = 0
+        minDistance=9999
+        for index, food, in enumerate(foodGrid):
+            md=util.manhattanDistance(position, food)
+            if md<minDistance:
+                minDistance=md
+                minCap=index
+                pathCost+=md
+        position=foodGrid.pop(minCap)
+
+    return pathCost
 
 
 """
