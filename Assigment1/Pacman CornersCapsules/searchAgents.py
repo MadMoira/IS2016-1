@@ -11,6 +11,8 @@
 # Student side autograding was added by Brad Miller, Nick Hay, and
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
+import copy
+
 
 """
 This file contains all of the agents that can be selected to control Pacman.  To
@@ -133,6 +135,27 @@ class SearchAgent(Agent):
         else:
             return Directions.STOP
 
+
+def breadthFirstSearch(problem):
+    fringe = util.Queue()
+    fringe.push( (problem.getStartState(), []) )
+
+    visited = []
+    while not fringe.isEmpty():
+        node, actions = fringe.pop()
+
+        for coord, direction, steps in problem.getSuccessors(node):
+            if not coord in visited:
+                if problem.isGoalState(coord):
+                    return actions + [direction]
+                fringe.push((coord, actions + [direction]))
+                visited.append(coord)
+
+    return []
+
+bfs = breadthFirstSearch
+
+
 class PositionSearchProblem(search.SearchProblem):
     """
     A search problem defines the state space, start state, goal test, successor
@@ -144,7 +167,7 @@ class PositionSearchProblem(search.SearchProblem):
     Note: this search problem is fully specified; you should NOT change it.
     """
 
-    def __init__(self, gameState, costFn = lambda x: 1, goal=(1,1), start=None, warn=True, visualize=True):
+    def __init__(self, gameState, costFn = lambda x: 1, goal=(1,1), start=None, warn=True, visualize=True, checkFood=False):
         """
         Stores the start and goal.
 
@@ -153,6 +176,11 @@ class PositionSearchProblem(search.SearchProblem):
         goal: A position in the gameState
         """
         self.walls = gameState.getWalls()
+        if checkFood:
+            self.walls = copy.deepcopy(gameState.getWalls())
+            food = gameState.getFood().asList()
+            for coordinate in food:
+                self.walls[coordinate[0]][coordinate[1]] = True
         self.startState = gameState.getPacmanPosition()
         if start != None: self.startState = start
         self.goal = goal
@@ -523,7 +551,7 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         "*** YOUR CODE HERE ***"
         util.raiseNotDefined()
 
-def mazeDistance(point1, point2, gameState):
+def mazeDistance(point1, point2, gameState, checkFood):
     """
     Returns the maze distance between any two points, using the search functions
     you have already built. The gameState can be any game state -- Pacman's
@@ -538,8 +566,8 @@ def mazeDistance(point1, point2, gameState):
     walls = gameState.getWalls()
     assert not walls[x1][y1], 'point1 is a wall: ' + str(point1)
     assert not walls[x2][y2], 'point2 is a wall: ' + str(point2)
-    prob = PositionSearchProblem(gameState, start=point1, goal=point2, warn=False, visualize=False)
-    return len(search.bfs(prob))
+    prob = PositionSearchProblem(gameState, start=point1, goal=point2, warn=False, visualize=False, checkFood=checkFood)
+    return len(bfs(prob))
 
 
 import copy
@@ -558,15 +586,14 @@ class CornersAndCapsulesProblem(search.SearchProblem):
         # DO NOT CHANGE; Number of search nodes expanded
         self._expanded = 0
 
+        self.initial = copy.deepcopy(startingGameState)
         self.capsules = startingGameState.getCapsules()
         self.food = startingGameState.getFood()
         self.walls = startingGameState.getWalls()
         self.startingPosition = startingGameState.getPacmanPosition()
-        top, right = self.walls.height-2, self.walls.width-2
-        self.corners = ((1,1), (1,top), (right, 1), (right, top))
-        for corner in self.corners:
-            if not startingGameState.hasFood(*corner):
-                print 'No food in corner ' + str(corner)
+
+    def getStartingGameState(self):
+        return self.initial
 
     def getStartState(self):
         """
@@ -687,35 +714,54 @@ def cornersAndCapsulesHeuristic(state, problem):
     admissible (as well as consistent).
     """
 
+    # position, capsules, foodGrid = state
+    # capsules = list(problem.stringToCapsules(capsules))
+    # foodGrid=foodGrid.asList()
+    #
+    # pathCost=0
+    #
+    # while (capsules):
+    #     minCap = 0
+    #     minDistance=9999
+    #     for index, capsule, in enumerate(capsules):
+    #         md=util.manhattanDistance(position, capsule)
+    #         if md<minDistance:
+    #             minDistance=md
+    #             minCap=index
+    #             pathCost+=md
+    #     position=capsules.pop(minCap)
+    #
+    # while (foodGrid):
+    #     minCap = 0
+    #     minDistance=9999
+    #     for index, food, in enumerate(foodGrid):
+    #         md=util.manhattanDistance(position, food)
+    #         if md<minDistance:
+    #             minDistance=md
+    #             minCap=index
+    #             pathCost+=md
+    #     position=foodGrid.pop(minCap)
+    #
+    # return pathCost
+
     position, capsules, foodGrid = state
-    capsules = list(problem.stringToCapsules(capsules))
-    foodGrid=foodGrid.asList()
+    capsules = problem.stringToCapsules(capsules)
 
-    pathCost=0
-    
-    while (capsules):
-        minCap = 0
-        minDistance=9999
-        for index, capsule, in enumerate(capsules):
-            md=util.manhattanDistance(position, capsule)
-            if md<minDistance:
-                minDistance=md
-                minCap=index
-                pathCost+=md
-        position=capsules.pop(minCap)
+    food_coordinates = foodGrid.asList()
 
-    while (foodGrid):
-        minCap = 0
-        minDistance=9999
-        for index, food, in enumerate(foodGrid):
-            md=util.manhattanDistance(position, food)
-            if md<minDistance:
-                minDistance=md
-                minCap=index
-                pathCost+=md
-        position=foodGrid.pop(minCap)
+    if not food_coordinates:
+        return 0
 
-    return pathCost
+    if len(capsules) > 0:
+
+        maxDistance = max(map(lambda x: mazeDistance(position, x, problem.getStartingGameState(), True), capsules))
+        # maxDistance = max(map(lambda x: util.manhattanDistance(position, x), capsules))
+
+    else:
+        maxDistance = max(map(lambda x: mazeDistance(position, x, problem.getStartingGameState(), False), food_coordinates))
+        # maxDistance = max(map(lambda x: util.manhattanDistance(position, x), food_coordinates))
+
+    return maxDistance
 
 
 """
