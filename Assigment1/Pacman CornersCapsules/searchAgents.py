@@ -570,9 +570,6 @@ def mazeDistance(point1, point2, gameState, checkFood):
     return len(bfs(prob))
 
 
-import copy
-
-
 class CornersAndCapsulesProblem(search.SearchProblem):
     def __init__(self, startingGameState):
         """
@@ -591,22 +588,10 @@ class CornersAndCapsulesProblem(search.SearchProblem):
         self.food = startingGameState.getFood()
         self.walls = startingGameState.getWalls()
         self.startingPosition = startingGameState.getPacmanPosition()
-<<<<<<< Updated upstream
-
-    def getStartingGameState(self):
-        return self.initial
-=======
-<<<<<<< HEAD
-        top, right = self.walls.height-2, self.walls.width-2
-        self.corners = ((1,1), (1,top), (right, 1), (right, top))
-        
-=======
->>>>>>> Stashed changes
 
     def getStartingGameState(self):
         return self.initial
 
->>>>>>> origin/master
     def getStartState(self):
         """
         Returns the start state (in your state space, not the full Pacman state
@@ -725,131 +710,53 @@ def cornersAndCapsulesHeuristic(state, problem):
     shortest path from the state to a goal of the problem; i.e.  it should be
     admissible (as well as consistent).
     """
-<<<<<<< Updated upstream
 
     # position, capsules, foodGrid = state
+    #
     # capsules = list(problem.stringToCapsules(capsules))
-    # foodGrid=foodGrid.asList()
+    # foodGrid = foodGrid.asList()
+    # position2 = position
     #
-    # pathCost=0
+    # max_dist = 0
     #
-    # while (capsules):
-    #     minCap = 0
-    #     minDistance=9999
-    #     for index, capsule, in enumerate(capsules):
-    #         md=util.manhattanDistance(position, capsule)
-    #         if md<minDistance:
-    #             minDistance=md
-    #             minCap=index
-    #             pathCost+=md
-    #     position=capsules.pop(minCap)
+    # for capsule in capsules:
+    #     md = util.manhattanDistance(position, capsule)
+    #     if md > max_dist:
+    #         max_dist = md
+    #         position2 = capsule
+    # if not capsules:
+    #     a = 0
+    # else:
+    #     a = max_dist
     #
-    # while (foodGrid):
-    #     minCap = 0
-    #     minDistance=9999
-    #     for index, food, in enumerate(foodGrid):
-    #         md=util.manhattanDistance(position, food)
-    #         if md<minDistance:
-    #             minDistance=md
-    #             minCap=index
-    #             pathCost+=md
-    #     position=foodGrid.pop(minCap)
+    # max_dist = 0
     #
-    # return pathCost
-
-    position, capsules, foodGrid = state
-=======
-<<<<<<< HEAD
-    position, capsules, foodGrid = state
-
-    import numpy as np
-
-    capsules = list(problem.stringToCapsules(capsules))
-    foodGrid=foodGrid.asList()
-    position2=position
-
-    a=0
-    b=0
-    std=np.std(np.array(capsules))
-
-    maxDist=0
-    for capsule in capsules:
-        md=util.manhattanDistance(position, capsule)
-        if md> maxDist:
-            maxDist=md
-            position2=capsule
-    if not capsules:
-        a=0
-    else:
-        a=maxDist
-
-    maxDist=0
-    std=np.std(np.array(foodGrid))
-    for food in foodGrid:
-        md=util.manhattanDistance(position2, food)
-        maxDist=max(maxDist, md)
-
-    if not foodGrid:
-        b=0
-    else:
-        b=maxDist
-    return a+b
-=======
-
-    # position, capsules, foodGrid = state
-    # capsules = list(problem.stringToCapsules(capsules))
-    # foodGrid=foodGrid.asList()
+    # for food in foodGrid:
+    #     md = util.manhattanDistance(position2, food)
+    #     max_dist = max(max_dist, md)
     #
-    # pathCost=0
-    #
-    # while (capsules):
-    #     minCap = 0
-    #     minDistance=9999
-    #     for index, capsule, in enumerate(capsules):
-    #         md=util.manhattanDistance(position, capsule)
-    #         if md<minDistance:
-    #             minDistance=md
-    #             minCap=index
-    #             pathCost+=md
-    #     position=capsules.pop(minCap)
-    #
-    # while (foodGrid):
-    #     minCap = 0
-    #     minDistance=9999
-    #     for index, food, in enumerate(foodGrid):
-    #         md=util.manhattanDistance(position, food)
-    #         if md<minDistance:
-    #             minDistance=md
-    #             minCap=index
-    #             pathCost+=md
-    #     position=foodGrid.pop(minCap)
-    #
-    # return pathCost
+    # if not foodGrid:
+    #     b = 0
+    # else:
+    #     b = max_dist
+    # return a + b
 
-    position, capsules, foodGrid = state
->>>>>>> Stashed changes
+    position, capsules, food_grid = state
+
     capsules = problem.stringToCapsules(capsules)
 
-    food_coordinates = foodGrid.asList()
+    food_coordinates = food_grid.asList()
 
     if not food_coordinates:
         return 0
 
     if len(capsules) > 0:
-
-        maxDistance = max(map(lambda x: mazeDistance(position, x, problem.getStartingGameState(), True), capsules))
-        # maxDistance = max(map(lambda x: util.manhattanDistance(position, x), capsules))
+        max_distance = max(map(lambda x: mazeDistance(position, x, problem.getStartingGameState(), True), capsules))
 
     else:
-        maxDistance = max(map(lambda x: mazeDistance(position, x, problem.getStartingGameState(), False), food_coordinates))
-        # maxDistance = max(map(lambda x: util.manhattanDistance(position, x), food_coordinates))
+        max_distance = max(map(lambda x: mazeDistance(position, x, problem.getStartingGameState(), False), food_coordinates))
 
-    return maxDistance
-<<<<<<< Updated upstream
-=======
->>>>>>> origin/master
->>>>>>> Stashed changes
-
+    return max_distance
 
 """
 Test your code with this agent
