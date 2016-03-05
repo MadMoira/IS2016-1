@@ -559,11 +559,7 @@ class CornersAndCapsulesProblem(search.SearchProblem):
         self._expanded = 0
 
         self.capsules = startingGameState.getCapsules()
-        # print("Capsules")
-        # print(self.capsules)
         self.food = startingGameState.getFood()
-        print("Food")
-        print(self.food)
         self.walls = startingGameState.getWalls()
         self.startingPosition = startingGameState.getPacmanPosition()
         top, right = self.walls.height-2, self.walls.width-2
@@ -628,7 +624,6 @@ class CornersAndCapsulesProblem(search.SearchProblem):
             hitsCapsule = (nextx, nexty) in capsules
 
             if not hitsWall:
-                print 'len de capsules: ', len(capsules)
                 if len(capsules) > 0:
                     if not hitsFood:
                         nextposition = (nextx, nexty)
@@ -692,8 +687,18 @@ def cornersAndCapsulesHeuristic(state, problem):
     admissible (as well as consistent).
     """
 
-    # Default to trivial solution'''
-    return 0
+    position, capsules, foodGrid = state
+    capsules = problem.stringToCapsules(capsules)
+
+    maxDistance=0
+    maxDistance2=0
+    
+    for capsule in capsules:
+        maxDistance=max(maxDistance, util.manhattanDistance(position, capsule))
+
+    for i in foodGrid.asList():
+        maxDistance2=max(maxDistance2,util.manhattanDistance(position,i))
+    return maxDistance+maxDistance2
 
 
 """
