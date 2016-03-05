@@ -711,52 +711,53 @@ def cornersAndCapsulesHeuristic(state, problem):
     admissible (as well as consistent).
     """
 
-    # position, capsules, foodGrid = state
-    #
-    # capsules = list(problem.stringToCapsules(capsules))
-    # foodGrid = foodGrid.asList()
-    # position2 = position
-    #
-    # max_dist = 0
-    #
-    # for capsule in capsules:
-    #     md = util.manhattanDistance(position, capsule)
-    #     if md > max_dist:
-    #         max_dist = md
-    #         position2 = capsule
-    # if not capsules:
-    #     a = 0
-    # else:
-    #     a = max_dist
-    #
-    # max_dist = 0
-    #
-    # for food in foodGrid:
-    #     md = util.manhattanDistance(position2, food)
-    #     max_dist = max(max_dist, md)
-    #
-    # if not foodGrid:
-    #     b = 0
-    # else:
-    #     b = max_dist
-    # return a + b
+    def alex_heuristic(position, capsules, food_grid):
+
+        position2 = position
+
+        max_dist = 0
+
+        for capsule in capsules:
+            md = util.manhattanDistance(position, capsule)
+            if md > max_dist:
+                max_dist = md
+                position2 = capsule
+        if not capsules:
+            a = 0
+        else:
+            a = max_dist
+
+        max_dist = 0
+
+        for food in food_grid:
+            md = util.manhattanDistance(position2, food)
+            max_dist = max(max_dist, md)
+
+        if not food_grid:
+            b = 0
+        else:
+            b = max_dist
+        return a + b
+
+    def camilo_heuristic(position, capsules, food_coordinates):
+
+        if not food_coordinates:
+            return 0
+
+        if len(capsules) > 0:
+            max_distance = max(map(lambda x: mazeDistance(position, x, problem.getStartingGameState(), True), capsules))
+
+        else:
+            max_distance = max(map(lambda x: mazeDistance(position, x, problem.getStartingGameState(), False), food_coordinates))
+
+        return max_distance
 
     position, capsules, food_grid = state
 
-    capsules = problem.stringToCapsules(capsules)
+    capsules = list(problem.stringToCapsules(capsules))
+    food_grid = food_grid.asList()
 
-    food_coordinates = food_grid.asList()
-
-    if not food_coordinates:
-        return 0
-
-    if len(capsules) > 0:
-        max_distance = max(map(lambda x: mazeDistance(position, x, problem.getStartingGameState(), True), capsules))
-
-    else:
-        max_distance = max(map(lambda x: mazeDistance(position, x, problem.getStartingGameState(), False), food_coordinates))
-
-    return max_distance
+    return max(camilo_heuristic(position, capsules, food_grid), alex_heuristic(position, capsules, food_grid))
 
 """
 Test your code with this agent
