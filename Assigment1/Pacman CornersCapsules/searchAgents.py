@@ -712,11 +712,10 @@ def cornersAndCapsulesHeuristic(state, problem):
     """
 
     def alex_heuristic(position, capsules, food_grid):
-
+        import numpy as np
         position2 = position
-
         max_dist = 0
-
+        std = np.std(capsules)
         for capsule in capsules:
             md = util.manhattanDistance(position, capsule)
             if md > max_dist:
@@ -724,20 +723,24 @@ def cornersAndCapsulesHeuristic(state, problem):
                 position2 = capsule
         if not capsules:
             a = 0
-        else:
+        elif len(capsules)==1: 
             a = max_dist
+        else:
+            a = max_dist #+ len(capsules)*std
 
         max_dist = 0
-
+        std= np.std(food_grid)
         for food in food_grid:
             md = util.manhattanDistance(position2, food)
             max_dist = max(max_dist, md)
 
         if not food_grid:
             b = 0
-        else:
+        elif len(food_grid)==1: 
             b = max_dist
-        return a + b
+        else:
+            b = max_dist #+ len(food_grid)*std
+        return (a + b)
 
     def camilo_heuristic(position, capsules, food_coordinates):
 
@@ -756,7 +759,6 @@ def cornersAndCapsulesHeuristic(state, problem):
 
     capsules = list(problem.stringToCapsules(capsules))
     food_grid = food_grid.asList()
-
     return max(camilo_heuristic(position, capsules, food_grid), alex_heuristic(position, capsules, food_grid))
 
 """
